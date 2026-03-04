@@ -1,24 +1,18 @@
 'use client';
-
+import ThemeToggle from '../../components/ThemeToggle';
+import Link from 'next/link';
 import { useState } from 'react';
-import ThemeToggle from '../../components/ThemeToggle'; 
+import { useRouter } from 'next/navigation';
 
 export default function Cadastro() {
-  // 1. Estado para a Categoria Principal (Cliente ou Profissional)
-  const [userCategory, setUserCategory] = useState('cliente'); 
-
-  // 2. Estado para os Sub-tipos
-  const [profType, setProfType] = useState('nutricionista'); // 'nutricionista' ou 'personal'
-  const [clientGoal, setClientGoal] = useState('hipertrofia'); // objetivo do cliente
-
-  // 3. Dados do formulário (Campos comuns e específicos)
+  const router = useRouter();
+  
   const [formData, setFormData] = useState({
-    nome: '',           // Adicionei nome para ficar mais completo
-    nascimento: '',
-    genero: '',
-    altura: '',         // Apenas para cliente
-    peso: '',           // Apenas para cliente
-    registroProfissional: '' // CRN ou CREF (Apenas para profissional)
+    name: '',
+    email: '',
+    password: '',
+    password_confirmation: '',
+    role: 'cliente' // 'cliente' ou 'profissional'
   });
 
   const handleChange = (e) => {
@@ -28,189 +22,82 @@ export default function Cadastro() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log("Enviando para /api/register:", formData);
     
-    // Montando o objeto final para envio
-    const finalData = {
-      categoria: userCategory,
-      subTipo: userCategory === 'profissional' ? profType : clientGoal,
-      ...formData
-    };
-
-    // Limpeza: Remove campos inúteis (ex: peso se for profissional)
-    if (userCategory === 'profissional') {
-        delete finalData.altura;
-        delete finalData.peso;
-    } else {
-        delete finalData.registroProfissional;
-    }
-
-    console.log("Dados Prontos para Envio:", finalData);
-    alert(`Cadastro de ${userCategory} (${userCategory === 'profissional' ? profType : clientGoal}) enviado!`);
+    // Simula o sucesso e vai para o Passo 2
+    alert("Conta criada com sucesso! Redirecionando...");
+    router.push(`/completar-perfil?role=${formData.role}`);
   };
 
   return (
     <main className="center-screen">
-      
       <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
         <ThemeToggle />
       </div>
-
       <h1>Crie sua conta</h1>
-      <p style={{marginBottom: '20px'}}>Preencha os dados abaixo.</p>
-      
+      <p style={{ marginBottom: '20px' }}>Passo 1 de 2: Dados de acesso</p>
+
       <div className="form-container">
         
-        {/* --- SELETOR PRINCIPAL (Abas) --- */}
+        {/* --- SELETOR PRINCIPAL (Abas com seu design original) --- */}
         <div className="user-type-selector">
           <button 
             type="button"
-            className={`type-btn ${userCategory === 'cliente' ? 'active-aluno' : ''}`}
-            onClick={() => setUserCategory('cliente')}
+            className={`type-btn ${formData.role === 'cliente' ? 'active-aluno' : ''}`}
+            onClick={() => setFormData({ ...formData, role: 'cliente' })}
           >
             Sou Cliente
           </button>
           <button 
             type="button"
-            className={`type-btn ${userCategory === 'profissional' ? 'active-prof' : ''}`}
-            onClick={() => setUserCategory('profissional')}
+            className={`type-btn ${formData.role === 'profissional' ? 'active-prof' : ''}`}
+            onClick={() => setFormData({ ...formData, role: 'profissional' })}
           >
             Sou Profissional
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-
-          {/* --- CAMPOS COMUNS (Nascimento, Gênero) --- */}
           
-
           <div className="form-group">
-            <label className="form-label">Data de Nascimento</label>
-            <input 
-              type="date" name="nascimento" className="form-input"
-              onChange={handleChange} required 
-            />
+            <label className="form-label">Nome Completo</label>
+            <input type="text" name="name" className="form-input" onChange={handleChange} required />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Gênero</label>
-            <select name="genero" className="form-select" onChange={handleChange} required>
-              <option value="">Selecione...</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Feminino">Feminino</option>
-              <option value="Outro">Outro</option>
-            </select>
+            <label className="form-label">E-mail</label>
+            <input type="email" name="email" className="form-input" onChange={handleChange} required />
           </div>
 
-          <hr style={{ margin: '20px 0', borderColor: 'var(--border)' }} />
+          <div className="form-group">
+            <label className="form-label">Senha</label>
+            <input type="password" name="password" className="form-input" onChange={handleChange} required />
+          </div>
 
-          {/* --- ÁREA ESPECÍFICA: CLIENTE --- */}
-          {userCategory === 'cliente' && (
-            <div className="animate-fade-in">
-              <h3 style={{marginBottom: '10px', color: 'var(--primary-aluno)'}}>Dados Corporais</h3>
-              
-              {/* Seleção do Tipo de Objetivo (Tipo de Cliente) */}
-              <div className="form-group">
-                <label className="form-label">Qual seu objetivo principal?</label>
-                <select 
-                  className="form-select" 
-                  value={clientGoal}
-                  onChange={(e) => setClientGoal(e.target.value)}
-                >
-                  <option value="hipertrofia">Hipertrofia (Ganhar Massa)</option>
-                  <option value="emagrecimento">Emagrecimento (Perder Peso)</option>
-                  <option value="saude">Saúde e Bem-estar</option>
-                  <option value="performance">Performance Esportiva</option>
-                </select>
-              </div>
+          <div className="form-group">
+            <label className="form-label">Confirmar Senha</label>
+            <input type="password" name="password_confirmation" className="form-input" onChange={handleChange} required />
+          </div>
 
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Altura (m)</label>
-                  <input 
-                    type="number" step="0.01" placeholder="1.75"
-                    name="altura" className="form-input"
-                    onChange={handleChange} required
-                  />
-                </div>
-                <div className="form-group" style={{ flex: 1 }}>
-                  <label className="form-label">Peso (kg)</label>
-                  <input 
-                    type="number" step="0.1" placeholder="80.5"
-                    name="peso" className="form-input"
-                    onChange={handleChange} required
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-    {/*
-          /*{/* --- ÁREA ESPECÍFICA: PROFISSIONAL --- */} /* */
-          {userCategory === 'profissional' && (
-            <div className="animate-fade-in">
-              <h3 style={{marginBottom: '10px', color: 'var(--primary-prof)'}}>Dados Profissionais</h3>
-              
-              {/* Seleção do Tipo de Profissional */}
-              <div className="form-group">
-                <label className="form-label">Qual sua especialidade?</label>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <label style={{ flex: 1, cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="profType" 
-                      checked={profType === 'nutricionista'} 
-                      onChange={() => setProfType('nutricionista')}
-                      style={{ marginRight: '5px' }}
-                    />
-                    Nutricionista
-                  </label>
-                  <label style={{ flex: 1, cursor: 'pointer' }}>
-                    <input 
-                      type="radio" 
-                      name="profType" 
-                      checked={profType === 'personal'} 
-                      onChange={() => setProfType('personal')}
-                      style={{ marginRight: '5px' }}
-                    />
-                    Personal Trainer
-                  </label>
-                </div>
-              </div>
- 
-              {/* Campo Específico para Registro (CRN ou CREF) */}
-              <div className="form-group">
-                <label className="form-label">
-                  {profType === 'nutricionista' ? 'Número do CRN' : 'Número do CREF'}
-                </label>
-                <input 
-                  type="text" 
-                  name="registroProfissional" 
-                  placeholder={profType === 'nutricionista' ? 'Ex: CRN-3 12345' : 'Ex: 123456-G/SP'}
-                  className="form-input"
-                  onChange={handleChange} 
-                  required
-                />
-              </div>
-            </div>
-          )}
-
-
-          {/* Botão Salvar */}
           <button 
             type="submit" 
             className="btn"
             style={{ 
               width: '100%', 
-              marginTop: '20px',
-              backgroundColor: userCategory === 'cliente' ? 'var(--primary-aluno)' : 'var(--primary-prof)'
+              margin: '20px 0 0 0',
+              backgroundColor: formData.role === 'cliente' ? 'var(--primary-aluno)' : 'var(--primary-prof)'
             }}
           >
-            {userCategory === 'cliente' 
-              ? 'Calcular Perfil e Cadastrar' 
-              : `Cadastrar como ${profType === 'nutricionista' ? 'Nutricionista' : 'Personal'}`
-            }
+            Continuar para o Perfil
           </button>
-
         </form>
+
+        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+          <Link href="/" style={{ color: 'var(--foreground)', textDecoration: 'none', fontSize: '0.9rem' }}>
+            Já possui acesso? <span style={{ color: 'var(--primary-aluno)', fontWeight: 'bold' }}>Fazer Login</span>
+          </Link>
+        </div>
+
       </div>
     </main>
   );
